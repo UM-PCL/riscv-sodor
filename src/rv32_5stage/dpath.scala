@@ -28,6 +28,7 @@ class DatToCtlIo(implicit val conf: SodorConfiguration) extends Bundle()
    val mem_ctrl_dmem_val = Output(Bool())
 
    val csr_eret = Output(Bool())
+   val reg_stall = Output(Bool())
    override def cloneType = { new DatToCtlIo().asInstanceOf[this.type] }
 }
 
@@ -108,7 +109,7 @@ class DatPath(implicit val conf: SodorConfiguration) extends Module
    val exe_jump_reg_target = Wire(UInt(32.W))
    val exception_target    = Wire(UInt(32.W))
 
-   when ((!io.ctl.dec_stall && !io.ctl.full_stall) || io.ctl.pipeline_kill)
+   when ((!io.ctl.dec_stall && !io.ctl.full_stall) || io.ctl.pipeline_kill )
    {
       if_reg_pc := if_pc_next
    }
@@ -175,6 +176,7 @@ class DatPath(implicit val conf: SodorConfiguration) extends Module
    io.ddpath.rdata := regfile.io.dm_rdata
    regfile.io.dm_en := io.ddpath.validreq
    regfile.io.dm_wdata := io.ddpath.wdata
+   io.dat.reg_stall := regfile.io.stall
    ///
 
    // immediates

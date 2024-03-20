@@ -235,7 +235,8 @@ class CtlPath(implicit val conf: SodorConfiguration) extends Module
                ((wb_reg_wbaddr  === dec_rs2_addr) && (dec_rs2_addr =/= 0.U) &&  wb_reg_ctrl_rf_wen && dec_rs2_oen) ||
                ((exe_inst_is_load) && (exe_reg_wbaddr === dec_rs1_addr) && (exe_reg_wbaddr =/= 0.U) && dec_rs1_oen) ||
                ((exe_inst_is_load) && (exe_reg_wbaddr === dec_rs2_addr) && (exe_reg_wbaddr =/= 0.U) && dec_rs2_oen) ||
-               ((exe_reg_is_csr))
+               ((exe_reg_is_csr)) ||
+               ((io.dat.reg_stall))
    }
 
 
