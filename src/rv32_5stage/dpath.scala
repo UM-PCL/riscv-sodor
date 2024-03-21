@@ -170,6 +170,7 @@ class DatPath(implicit val conf: SodorConfiguration) extends Module
    regfile.io.waddr := wb_reg_wbaddr
    regfile.io.wdata := wb_reg_wbdata
    regfile.io.wen   := wb_reg_ctrl_rf_wen
+   regfile.io.rs2_valid := (io.ctl.op2_sel === OP2_RS2)
 
    //// DebugModule
    regfile.io.dm_addr := io.ddpath.addr

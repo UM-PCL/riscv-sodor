@@ -28,8 +28,7 @@ class RFileIo(implicit val conf: SodorConfiguration) extends Bundle()
    val wdata    = Input(UInt(conf.xprlen.W))
    val wen      = Input(Bool())
    val stall    = Output(Bool())  // Add stall signal here
-   val rs1_ready_debug = Output(Bool())
-   val rs2_ready_debug = Output(Bool())
+   val rs2_valid = Input(Bool())  // whether rs2 is used or not
 }
 class RegisterFile(implicit val conf: SodorConfiguration) extends Module {
    val io = IO(new RFileIo())
@@ -77,7 +76,8 @@ class RegisterFile(implicit val conf: SodorConfiguration) extends Module {
    }
 
    when (!rs2_ready){
-      rs2_ready := (io.rs2_addr === 0.U) || isAddrInWindow(io.rs2_addr)
+      // rs2 may not be used
+      rs2_ready := (((io.rs2_addr === 0.U) || isAddrInWindow(io.rs2_addr)) && io.rs2_valid ) || (!io.rs2_valid)
    }
 
    // Generate the stall signal. Stall if either rs1_addr or rs2_addr is outside the window and non-zero
@@ -87,8 +87,6 @@ class RegisterFile(implicit val conf: SodorConfiguration) extends Module {
       rs1_ready := RegNext(false.B)
       rs2_ready := RegNext(false.B)
    }
-   io.rs1_ready_debug := rs1_ready
-   io.rs2_ready_debug := rs2_ready
    printf("rs1_ready: %d, rs2_ready: %d, counter: %d, is_addr2_in: %d, r_data1: %d, r_data2: %d\n",rs1_ready,rs2_ready, counter, isAddrInWindow(io.rs2_addr), io.rs1_data,io.rs2_data)
    //((io.rs1_addr =/= 0.U) && !isAddrInWindow(io.rs1_addr)) || ((io.rs2_addr =/= 0.U) && !isAddrInWindow(io.rs2_addr))
    for (i <- 0 until 32) {
