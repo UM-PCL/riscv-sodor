@@ -89,7 +89,12 @@ class RegisterFile(implicit val conf: SodorConfiguration) extends Module {
    }
    io.rs1_ready_debug := rs1_ready
    io.rs2_ready_debug := rs2_ready
-   printf("rs1_ready: %d, rs2_ready: %d, counter: %d, is_addr2_in: %d\n",rs1_ready,rs2_ready, counter, isAddrInWindow(io.rs2_addr))
+   printf("rs1_ready: %d, rs2_ready: %d, counter: %d, is_addr2_in: %d, r_data1: %d, r_data2: %d\n",rs1_ready,rs2_ready, counter, isAddrInWindow(io.rs2_addr), io.rs1_data,io.rs2_data)
    //((io.rs1_addr =/= 0.U) && !isAddrInWindow(io.rs1_addr)) || ((io.rs2_addr =/= 0.U) && !isAddrInWindow(io.rs2_addr))
+   for (i <- 0 until 32) {
+     printf(p"Reg[$i]: 0x${Hexadecimal(regfile(i))} ")
+   }
+   printf(p"\n") // Print newline after all registers have been printed
+
 }
 }
