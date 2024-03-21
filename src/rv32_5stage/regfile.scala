@@ -49,5 +49,12 @@ class RegisterFile(implicit val conf: SodorConfiguration) extends Module
    io.rs2_data := Mux((io.rs2_addr =/= 0.U), regfile(io.rs2_addr), 0.U)
    io.dm_rdata := Mux((io.dm_addr =/= 0.U), regfile(io.dm_addr), 0.U)
 
+   //((io.rs1_addr =/= 0.U) && !isAddrInWindow(io.rs1_addr)) || ((io.rs2_addr =/= 0.U) && !isAddrInWindow(io.rs2_addr))
+   for (i <- 0 until 32) {
+     printf(p"Reg[$i]: 0x${Hexadecimal(regfile(i))} ")
+   }
+   printf(p"\n") // Print newline after all registers have been printed
+
+
 }
 }
