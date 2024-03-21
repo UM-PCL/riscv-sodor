@@ -28,25 +28,33 @@ class RFileIo(implicit val conf: SodorConfiguration) extends Bundle()
    val wdata    = Input(UInt(conf.xprlen.W))
    val wen      = Input(Bool())
    val stall    = Output(Bool())  // Add stall signal here
+   val rs1_ready_debug = Output(Bool())
+   val rs2_ready_debug = Output(Bool())
 }
 class RegisterFile(implicit val conf: SodorConfiguration) extends Module {
    val io = IO(new RFileIo())
 
    val regfile = Mem(32, UInt(conf.xprlen.W))
 
-   val counter = RegInit(0.U(5.W))
+   val counter = RegInit(0.U(6.W))
 
    val rs1_ready = RegInit(false.B)
    val rs2_ready = RegInit(false.B)
 
-   // Increment by 1 to create a counter that goes from 0 to 31
-   counter := Mux(counter === 31.U, 0.U, counter + 1.U)
+   // Increment by 10 and wrap around from 0 to 31
+   counter := (counter + 10.U ) % 32.U
    
-   // Read window check, including when the counter wraps around
-   def isAddrInWindow(addr: UInt, size: UInt = 32.U): Bool = {
-      val windowStart = counter % 32.U
-      val windowEnd = (counter + size) % 32.U
-      ((addr >= windowStart) && (addr < windowEnd)) 
+   def isAddrInWindow(addr: UInt, size: UInt = 10.U): Bool = {
+      val windowStart = counter
+      val windowEnd = (counter + size) & 0x1F.U // Ensure wrap-around within 32 registers using mask
+
+      // If the window doesn't wrap around
+      val inWindow = (addr >= windowStart) && (addr < windowEnd)
+      
+      // If the window wraps around
+      val wrapAround = (windowEnd < windowStart) && ((addr >= windowStart) || (addr < windowEnd))
+      
+      inWindow || wrapAround
    }
 
    // Write within the window condition
@@ -68,8 +76,20 @@ class RegisterFile(implicit val conf: SodorConfiguration) extends Module {
       rs1_ready := (io.rs1_addr === 0.U) || isAddrInWindow(io.rs1_addr)
    }
 
+   when (!rs2_ready){
+      rs2_ready := (io.rs2_addr === 0.U) || isAddrInWindow(io.rs2_addr)
+   }
+
    // Generate the stall signal. Stall if either rs1_addr or rs2_addr is outside the window and non-zero
-   io.stall := false.B
+   io.stall := (!rs1_ready) || (!rs2_ready)
+
+   when (!io.stall){
+      rs1_ready := RegNext(false.B)
+      rs2_ready := RegNext(false.B)
+   }
+   io.rs1_ready_debug := rs1_ready
+   io.rs2_ready_debug := rs2_ready
+   printf("rs1_ready: %d, rs2_ready: %d, counter: %d, is_addr2_in: %d\n",rs1_ready,rs2_ready, counter, isAddrInWindow(io.rs2_addr))
    //((io.rs1_addr =/= 0.U) && !isAddrInWindow(io.rs1_addr)) || ((io.rs2_addr =/= 0.U) && !isAddrInWindow(io.rs2_addr))
 }
 }
