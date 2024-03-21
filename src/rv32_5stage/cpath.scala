@@ -235,7 +235,7 @@ class CtlPath(implicit val conf: SodorConfiguration) extends Module
                ((wb_reg_wbaddr  === dec_rs2_addr) && (dec_rs2_addr =/= 0.U) &&  wb_reg_ctrl_rf_wen && dec_rs2_oen) ||
                ((exe_inst_is_load) && (exe_reg_wbaddr === dec_rs1_addr) && (exe_reg_wbaddr =/= 0.U) && dec_rs1_oen) ||
                ((exe_inst_is_load) && (exe_reg_wbaddr === dec_rs2_addr) && (exe_reg_wbaddr =/= 0.U) && dec_rs2_oen) ||
-               ((exe_reg_is_csr))||((io.dat.reg_stall))
+               ((exe_reg_is_csr))
    }
 
 
@@ -245,7 +245,7 @@ class CtlPath(implicit val conf: SodorConfiguration) extends Module
 
 
    io.ctl.dec_stall  := stall // stall if, dec stage (pipeline hazard)
-   io.ctl.full_stall := full_stall  // stall entire pipeline (cache miss)
+   io.ctl.full_stall := full_stall || (io.dat.reg_stall) // stall entire pipeline (cache miss)
    io.ctl.exe_pc_sel := ctrl_exe_pc_sel
    io.ctl.br_type    := cs_br_type
    io.ctl.if_kill    := ifkill
